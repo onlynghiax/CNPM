@@ -1,0 +1,14 @@
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\AuthController.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\UserController.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\AuthResponse.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\LoginRequest.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\RegisterRequest.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\UserProfileRequest.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\UserProfileResponse.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\model\User.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\repository\UserRepository.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\security\JwtAuthenticationFilter.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\security\JwtUtil.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\security\SecurityConfig.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\service\UserService.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\UserManagementApplication.java

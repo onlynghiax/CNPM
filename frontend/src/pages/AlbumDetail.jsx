@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { Play, Pause, Volume2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { useCart } from "../context/CartContext";
@@ -18,6 +19,38 @@ export default function AlbumDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [imgError, setImgError] = useState(false);
+  
+  const [playingIndex, setPlayingIndex] = useState(null);
+  const audioRef = useRef(null);
+
+  const togglePlay = (index, url) => {
+    if (!url) return;
+    if (audioRef.current) {
+      if (playingIndex === index) {
+        audioRef.current.pause();
+        setPlayingIndex(null);
+      } else {
+        audioRef.current.pause();
+        audioRef.current.src = url;
+        audioRef.current.load();
+        audioRef.current.play().catch((err) => {
+          console.error("Playback Error:", err.name, err.message);
+        });
+        setPlayingIndex(index);
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+    };
+  }, []);
+
   const handleAdd = async () => {
     try {
       await addToCart(album.id, 1);
@@ -76,32 +109,54 @@ export default function AlbumDetail() {
     );
   }
 
-  const tracks = (album.tracklist || "")
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const rawTracks = Array.isArray(album.tracklist) ? album.tracklist : [];
+  const tracks = rawTracks.map(t => {
+    if (typeof t === "string") return { trackName: t, previewUrl: null };
+    return t;
+  });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }} className="max-w-5xl mx-auto space-y-12 px-0">
-      <Link
-        to="/"
-        className="inline-flex text-sm text-muted hover:text-mist transition underline-offset-4 decoration-transparent hover:decoration-mist/30"
-      >
-        ← Back to store
-      </Link>
+    <>
+      <audio ref={audioRef} onEnded={() => setPlayingIndex(null)} />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }} className="max-w-5xl mx-auto space-y-12 px-0">
+        <Link
+          to="/"
+          className="inline-flex text-sm text-muted hover:text-mist transition underline-offset-4 decoration-transparent hover:decoration-mist/30"
+        >
+          ← Back to store
+        </Link>
 
       <div className="grid gap-12 lg:gap-16 lg:grid-cols-[minmax(0,380px)_1fr] items-start">
         <div className="overflow-hidden rounded-2xl bg-card shadow-soft lg:sticky lg:top-28">
-          {album.imageUrl ? (
-            <img src={album.imageUrl} alt={album.title} className="aspect-square w-full object-cover" />
+          {album.imageUrl && !imgError ? (
+            <img
+              src={album.imageUrl}
+              alt={album.title}
+              className="aspect-square w-full object-cover"
+              onError={() => setImgError(true)}
+            />
           ) : (
-            <div className="aspect-square flex items-center justify-center text-muted text-sm">No artwork</div>
+            <div className="aspect-square w-full flex flex-col items-center justify-center bg-[#0a0a0a] relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-black/60 to-white/5 opacity-50"></div>
+              {/* Spinning Vinyl Placeholder */}
+              <div className="w-40 h-40 rounded-full bg-[#111] border border-white/5 shadow-2xl flex items-center justify-center relative animate-[spin_10s_linear_infinite]">
+                <div className="absolute inset-2 rounded-full border border-white/10 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)]"></div>
+                <div className="absolute inset-5 rounded-full border border-white/5"></div>
+                <div className="absolute inset-8 rounded-full border border-white/5"></div>
+                <div className="absolute inset-11 rounded-full border border-white/5"></div>
+                {/* Vinyl Label */}
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-mist/20 to-mist/10 flex items-center justify-center shadow-lg border border-white/10">
+                  <div className="w-3 h-3 bg-[#0a0a0a] rounded-full border border-black/50 shadow-inner"></div>
+                </div>
+              </div>
+              <span className="mt-8 font-light tracking-[0.3em] uppercase text-[10px] text-white/30 z-10">No Artwork</span>
+            </div>
           )}
         </div>
 
         <div className="rounded-2xl bg-card px-6 py-8 md:px-10 md:py-12 space-y-10 text-mist">
           <header className="space-y-3">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-muted">BadGenius</p>
+            <p className="text-[11px] uppercase tracking-[0.25em] text-muted font-black">BadGenius</p>
             <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white leading-[1.1]">
               {album.title}
             </h1>
@@ -133,11 +188,38 @@ export default function AlbumDetail() {
           {tracks.length > 0 && (
             <div className="space-y-4 border-t border-white/10 pt-10">
               <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted">Tracklist</h2>
-              <ol className="list-decimal list-inside space-y-2.5 text-sm text-white/90 leading-relaxed font-light">
-                {tracks.map((line, i) => (
-                  <li key={i}>{line.replace(/^\d+\.\s*/, "")}</li>
-                ))}
-              </ol>
+              <ul className="list-none space-y-1 text-sm text-white/90 leading-relaxed font-light">
+                {tracks.map((track, i) => {
+                  const isPlaying = playingIndex === i;
+                  const name = track.trackName.replace(/^\d+\.\s*/, "");
+                  return (
+                    <li key={i} className="flex items-center justify-between group py-1.5 px-3 hover:bg-white/5 rounded-lg transition-colors -mx-3">
+                       <div className="flex items-center gap-4 truncate">
+                          <span className={`${isPlaying ? 'text-accent-silver font-medium' : 'text-muted/60'} w-4 text-right tabular-nums`}>{i + 1}</span>
+                          <span className={`truncate ${isPlaying ? 'text-white' : ''}`}>{name}</span>
+                       </div>
+                       {track.previewUrl && (
+                          <button
+                            onClick={() => togglePlay(i, track.previewUrl)}
+                            className="text-muted hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10 focus:outline-none flex-shrink-0"
+                            title="Preview Track"
+                          >
+                            {isPlaying ? (
+                              <div className="relative flex items-center justify-center w-5 h-5">
+                                 <Pause size={14} className="opacity-0 group-hover:opacity-100 absolute z-10 transition-opacity" />
+                                 <Volume2 size={14} className="text-accent-silver opacity-100 group-hover:opacity-0 animate-pulse transition-opacity" />
+                              </div>
+                            ) : (
+                              <div className="relative flex items-center justify-center w-5 h-5">
+                                 <Play size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                            )}
+                          </button>
+                       )}
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
 
@@ -152,5 +234,6 @@ export default function AlbumDetail() {
         </div>
       </div>
     </motion.div>
+    </>
   );
 }

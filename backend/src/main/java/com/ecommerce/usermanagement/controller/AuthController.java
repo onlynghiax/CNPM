@@ -33,7 +33,7 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         // CNPM-6: Dang ky tai khoan, ma hoa mat khau bang BCrypt.
         if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body("Email da ton tai");
+            return ResponseEntity.badRequest().body("That email is already registered.");
         }
 
         User user = new User();
@@ -42,7 +42,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Dang ky thanh cong");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Account created successfully.");
     }
 
     @PostMapping("/login")
@@ -50,10 +50,10 @@ public class AuthController {
         // CNPM-7: Dang nhap va tra JWT token neu hop le.
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email hoac mat khau khong dung");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
-        return ResponseEntity.ok(new AuthResponse(token, "Dang nhap thanh cong"));
+        return ResponseEntity.ok(new AuthResponse(token, "Login successful."));
     }
 }

@@ -1,4 +1,5 @@
 import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -19,7 +20,7 @@ function App() {
       <nav className="sticky top-0 z-10 border-b border-white/[0.06] bg-void/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 md:justify-between">
           <Link to="/" className="text-center md:text-left">
-            <span className="block text-xl font-extralight tracking-tight text-white">BadGenius</span>
+            <span className="block text-2xl font-black tracking-wider text-white">BadGenius</span>
             <span className="block text-[10px] uppercase tracking-[0.28em] text-muted mt-1">
               Rap Exclusive Music Store
             </span>
@@ -37,8 +38,13 @@ function App() {
             <Link className={navLink} to="/profile">
               Profile
             </Link>
-            <Link className={navLink} to="/cart">
-              Cart ({itemCount})
+            <Link className={`${navLink} relative flex items-center mt-1 mr-2`} to="/cart" aria-label="Cart">
+              <ShoppingCart className="w-5 h-5 text-white" strokeWidth={1.5} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 flex items-center justify-center bg-accent-neon text-void text-[10px] font-bold h-4 w-4 rounded-full shadow-soft-sm">
+                  {itemCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { useCart } from "../context/CartContext";
+import VinylLoader from "../components/VinylLoader";
+import { motion } from "framer-motion";
 
 function formatPrice(value) {
   if (value == null) return "—";
@@ -35,14 +37,20 @@ export default function AlbumDetail() {
       setError("");
       try {
         const res = await axiosClient.get(`/api/albums/${id}`);
-        if (!cancelled) setAlbum(res.data);
+        setTimeout(() => {
+          if (!cancelled) {
+            setAlbum(res.data);
+            setLoading(false);
+          }
+        }, 1200);
       } catch (err) {
-        if (!cancelled) {
-          setError(err.response?.status === 404 ? "Album not found." : "Could not load this album.");
-          setAlbum(null);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+        setTimeout(() => {
+          if (!cancelled) {
+            setError(err.response?.status === 404 ? "Album not found." : "Could not load this album.");
+            setAlbum(null);
+            setLoading(false);
+          }
+        }, 1200);
       }
     })();
     return () => {
@@ -51,11 +59,7 @@ export default function AlbumDetail() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto text-center py-20">
-        <p className="text-sm text-muted">Loading...</p>
-      </div>
-    );
+    return <VinylLoader />;
   }
 
   if (error || !album) {
@@ -78,7 +82,7 @@ export default function AlbumDetail() {
     .filter(Boolean);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 px-0">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }} className="max-w-5xl mx-auto space-y-12 px-0">
       <Link
         to="/"
         className="inline-flex text-sm text-muted hover:text-mist transition underline-offset-4 decoration-transparent hover:decoration-mist/30"
@@ -89,7 +93,7 @@ export default function AlbumDetail() {
       <div className="grid gap-12 lg:gap-16 lg:grid-cols-[minmax(0,380px)_1fr] items-start">
         <div className="overflow-hidden rounded-2xl bg-card shadow-soft lg:sticky lg:top-28">
           {album.imageUrl ? (
-            <img src={album.imageUrl} alt="" className="aspect-square w-full object-cover" />
+            <img src={album.imageUrl} alt={album.title} className="aspect-square w-full object-cover" />
           ) : (
             <div className="aspect-square flex items-center justify-center text-muted text-sm">No artwork</div>
           )}
@@ -147,6 +151,6 @@ export default function AlbumDetail() {
           {notice && <p className="text-sm text-muted">{notice}</p>}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

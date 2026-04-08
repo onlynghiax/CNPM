@@ -31,7 +31,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        // CNPM-6: Dang ky tai khoan, ma hoa mat khau bang BCrypt.
+        // Register account and hash password with BCrypt.
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("That email is already registered.");
         }
@@ -47,7 +47,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        // CNPM-7: Dang nhap va tra JWT token neu hop le.
+        // Authenticate and return JWT when credentials are valid.
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");

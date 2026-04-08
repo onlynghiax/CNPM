@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
+import { useCart } from "../context/CartContext";
 
 function formatPrice(value) {
   if (value == null) return "—";
@@ -9,10 +10,23 @@ function formatPrice(value) {
 }
 
 export default function AlbumDetail() {
+  const { addToCart } = useCart();
   const { id } = useParams();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const handleAdd = async () => {
+    try {
+      await addToCart(album.id, 1);
+      setNotice("Added to cart.");
+      setTimeout(() => setNotice(""), 1500);
+    } catch (err) {
+      setNotice(err.response?.data || "Please login to add items.");
+      setTimeout(() => setNotice(""), 1800);
+    }
+  };
+
 
   useEffect(() => {
     let cancelled = false;
@@ -125,10 +139,12 @@ export default function AlbumDetail() {
 
           <button
             type="button"
+            onClick={handleAdd}
             className="w-full sm:w-auto rounded-xl bg-white text-void font-semibold px-10 py-4 text-sm tracking-wide hover:bg-white/90 transition shadow-soft-sm"
           >
             Add to Cart
           </button>
+          {notice && <p className="text-sm text-muted">{notice}</p>}
         </div>
       </div>
     </div>

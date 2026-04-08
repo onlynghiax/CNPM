@@ -5,7 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -27,6 +31,12 @@ public class User {
     private String phone;
 
     private String address;
+
+    @OneToMany(mappedBy = "user")
+    private List<CartItem> cartItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<Order> orders = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -70,5 +80,13 @@ public class User {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public List<CartItem> getCartItems() {
+        return cartItems;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
     }
 }

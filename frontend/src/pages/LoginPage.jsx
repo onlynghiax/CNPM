@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 
 const inputClass =
-  "w-full bg-transparent py-2.5 px-0 text-mist placeholder:text-muted/60 outline-none border-0 border-b border-mist/15 focus:border-mist/35 transition rounded-none";
+  "w-full bg-transparent py-2.5 px-0 text-white placeholder:text-muted/80 outline-none border-0 border-b border-white/30 focus:border-white/60 transition rounded-none";
 
 function formatError(err) {
   const d = err.response?.data;

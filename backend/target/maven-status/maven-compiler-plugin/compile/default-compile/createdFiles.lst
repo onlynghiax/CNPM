@@ -17,6 +17,7 @@ com\ecommerce\usermanagement\dto\CheckoutRequest.class
 com\ecommerce\usermanagement\config\AlbumSampleDataLoader.class
 com\ecommerce\usermanagement\repository\AlbumRepository.class
 com\ecommerce\usermanagement\dto\UpdateCartItemRequest.class
+com\ecommerce\usermanagement\model\Album$Track.class
 com\ecommerce\usermanagement\model\Order.class
 com\ecommerce\usermanagement\service\CartService.class
 com\ecommerce\usermanagement\dto\UserProfileResponse.class

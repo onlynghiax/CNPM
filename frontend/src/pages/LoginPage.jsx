@@ -2,6 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 
+const inputClass =
+  "w-full bg-transparent py-2.5 px-0 text-mist placeholder:text-muted/60 outline-none border-0 border-b border-mist/15 focus:border-mist/35 transition rounded-none";
+
+function formatError(err) {
+  const d = err.response?.data;
+  if (typeof d === "string") return d;
+  if (d && typeof d === "object") return JSON.stringify(d);
+  return err.message || "Sign-in failed.";
+}
+
 function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -12,39 +22,42 @@ function LoginPage() {
     setError("");
     try {
       const res = await axiosClient.post("/api/auth/login", form);
-      // CNPM-7: Luu token vao localStorage de su dung cho cac request tiep theo.
       localStorage.setItem("token", res.data.token);
-      navigate("/profile");
+      navigate("/");
       window.location.reload();
     } catch (err) {
-      setError(err.response?.data || "Dang nhap that bai");
+      setError(formatError(err));
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-semibold mb-4">CNPM-7: Dang nhap</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="max-w-md mx-auto rounded-2xl bg-card p-8 md:p-12 shadow-soft text-center sm:text-left">
+      <h1 className="text-3xl md:text-4xl font-extralight tracking-tight text-white mb-2">Sign in</h1>
+      <p className="text-sm text-muted mb-10 leading-relaxed font-light">Welcome back to BadGenius.</p>
+      <form onSubmit={handleSubmit} className="space-y-7">
         <input
-          className="w-full border rounded p-2"
+          className={inputClass}
           placeholder="Email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
         <input
-          className="w-full border rounded p-2"
+          className={inputClass}
           type="password"
-          placeholder="Mat khau"
+          placeholder="Password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
         />
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
-          Dang nhap
+        <button
+          className="rounded-minimal bg-mist/[0.08] hover:bg-mist/[0.12] text-mist font-semibold px-6 py-3 transition"
+          type="submit"
+        >
+          Login
         </button>
       </form>
-      {error && <p className="text-red-600 mt-3">{error}</p>}
+      {error && <p className="text-sm text-red-400/90 mt-8 leading-relaxed">{error}</p>}
     </div>
   );
 }

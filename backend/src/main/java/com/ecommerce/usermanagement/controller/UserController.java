@@ -23,7 +23,7 @@ public class UserController {
 
     @GetMapping("/profile")
     public UserProfileResponse getProfile(Authentication authentication) {
-        // CNPM-8: Lay profile dua tren email trong JWT.
+        // Read profile using email from JWT principal.
         String email = (String) authentication.getPrincipal();
         User user = userService.getUserByEmail(email);
         return UserProfileResponse.fromUser(user);
@@ -32,7 +32,7 @@ public class UserController {
     @PutMapping("/profile")
     public UserProfileResponse updateProfile(Authentication authentication,
                                              @RequestBody UserProfileRequest request) {
-        // CNPM-8: Cap nhat profile cua user dang dang nhap.
+        // Update profile of the currently authenticated user.
         String email = (String) authentication.getPrincipal();
         User updatedUser = userService.updateProfile(email, request);
         return UserProfileResponse.fromUser(updatedUser);

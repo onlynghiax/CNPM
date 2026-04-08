@@ -16,7 +16,7 @@ public class UserService {
 
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay nguoi dung"));
+                .orElseThrow(() -> new RuntimeException("User not found."));
     }
 
     public User updateProfile(String email, UserProfileRequest request) {

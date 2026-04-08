@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #050505;
+    color: #e5e5e5;
+    @apply font-sans text-[15px] leading-relaxed tracking-tight antialiased;
+  }
+}

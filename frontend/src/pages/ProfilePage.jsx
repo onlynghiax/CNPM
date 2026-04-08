@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import axiosClient from "../api/axiosClient";
 
 const inputClass =
-  "w-full bg-transparent py-2.5 px-0 text-mist placeholder:text-muted/60 outline-none border-0 border-b border-mist/15 focus:border-mist/35 transition rounded-none";
+  "w-full bg-transparent py-2.5 px-0 text-white placeholder:text-muted/80 outline-none border-0 border-b border-white/30 focus:border-white/60 transition rounded-none";
 
 const inputDisabled =
-  "w-full py-2.5 px-0 text-muted/80 border-0 border-b border-mist/10 cursor-not-allowed bg-transparent rounded-none";
+  "w-full py-2.5 px-0 text-muted/80 border-0 border-b border-white/10 cursor-not-allowed bg-transparent rounded-none";
 
 function formatError(err) {
   const d = err.response?.data;
@@ -87,7 +87,7 @@ function ProfilePage() {
           onChange={(e) => setForm({ ...form, address: e.target.value })}
         />
         <button
-          className="rounded-minimal bg-accent-neon/88 hover:bg-accent-neon text-void font-semibold px-6 py-3 shadow-soft-sm transition"
+          className="rounded-minimal bg-accent-neon/88 hover:bg-accent-neon text-white font-semibold px-6 py-3 shadow-soft-sm transition"
           type="submit"
         >
           Save changes

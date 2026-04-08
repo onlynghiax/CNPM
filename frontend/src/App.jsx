@@ -4,9 +4,12 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import MusicStore from "./pages/MusicStore";
 import AlbumDetail from "./pages/AlbumDetail";
+import CartPage from "./pages/CartPage";
+import { useCart } from "./context/CartContext";
 
 function App() {
   const hasToken = Boolean(localStorage.getItem("token"));
+  const { itemCount } = useCart();
 
   const navLink =
     "text-sm text-muted hover:text-mist transition pb-0.5 border-b border-transparent hover:border-white/20 font-light";
@@ -34,6 +37,9 @@ function App() {
             <Link className={navLink} to="/profile">
               Profile
             </Link>
+            <Link className={navLink} to="/cart">
+              Cart ({itemCount})
+            </Link>
           </div>
         </div>
       </nav>
@@ -44,6 +50,7 @@ function App() {
           <Route path="/album/:id" element={<AlbumDetail />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/cart" element={hasToken ? <CartPage /> : <Navigate to="/login" replace />} />
           <Route
             path="/profile"
             element={hasToken ? <ProfilePage /> : <Navigate to="/login" replace />}

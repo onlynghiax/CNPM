@@ -11,6 +11,8 @@ const RAPPERS = [
   "Eminem",
   "24kGoldn",
   "Jay-Z",
+  "Nas",
+  "Dr. Dre",
   "Đen Vâu"
 ];
 

@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../api/axiosClient";
 
+const inputClass =
+  "w-full bg-transparent py-2.5 px-0 text-mist placeholder:text-muted/60 outline-none border-0 border-b border-mist/15 focus:border-mist/35 transition rounded-none";
+
+const inputDisabled =
+  "w-full py-2.5 px-0 text-muted/80 border-0 border-b border-mist/10 cursor-not-allowed bg-transparent rounded-none";
+
+function formatError(err) {
+  const d = err.response?.data;
+  if (typeof d === "string") return d;
+  if (d && typeof d === "object") return JSON.stringify(d);
+  return err.message || "Request failed.";
+}
+
 function ProfilePage() {
   const [form, setForm] = useState({
     fullName: "",
@@ -16,7 +29,7 @@ function ProfilePage() {
       const res = await axiosClient.get("/api/users/profile");
       setForm(res.data);
     } catch (err) {
-      setError(err.response?.data || "Khong tai duoc thong tin profile");
+      setError(formatError(err));
     }
   };
 
@@ -36,41 +49,52 @@ function ProfilePage() {
       };
       const res = await axiosClient.put("/api/users/profile", payload);
       setForm(res.data);
-      setMessage("Cap nhat profile thanh cong");
+      setMessage("Profile updated.");
     } catch (err) {
-      setError(err.response?.data || "Cap nhat profile that bai");
+      setError(formatError(err));
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-semibold mb-4">CNPM-8: Quan ly ho so ca nhan</h1>
-      <form onSubmit={handleUpdate} className="space-y-4">
+    <div className="max-w-md mx-auto rounded-2xl bg-card p-8 md:p-12 shadow-soft text-center sm:text-left">
+      <h1 className="text-3xl md:text-4xl font-extralight tracking-tight text-white mb-2">Profile</h1>
+      <p className="text-sm text-muted mb-10 leading-relaxed font-light">Manage your BadGenius account details.</p>
+      <form onSubmit={handleUpdate} className="space-y-7">
         <input
-          className="w-full border rounded p-2"
-          placeholder="Ho ten"
+          className={inputClass}
+          placeholder="Full name"
           value={form.fullName || ""}
           onChange={(e) => setForm({ ...form, fullName: e.target.value })}
         />
-        <input className="w-full border rounded p-2 bg-gray-100" value={form.email || ""} disabled />
         <input
-          className="w-full border rounded p-2"
-          placeholder="So dien thoai"
+          className={inputDisabled}
+          value={form.email || ""}
+          disabled
+          readOnly
+          aria-label="Email (read only)"
+          title="Email cannot be changed here"
+        />
+        <input
+          className={inputClass}
+          placeholder="Phone"
           value={form.phone || ""}
           onChange={(e) => setForm({ ...form, phone: e.target.value })}
         />
         <input
-          className="w-full border rounded p-2"
-          placeholder="Dia chi"
+          className={inputClass}
+          placeholder="Address"
           value={form.address || ""}
           onChange={(e) => setForm({ ...form, address: e.target.value })}
         />
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
-          Luu thay doi
+        <button
+          className="rounded-minimal bg-accent-neon/88 hover:bg-accent-neon text-void font-semibold px-6 py-3 shadow-soft-sm transition"
+          type="submit"
+        >
+          Save changes
         </button>
       </form>
-      {message && <p className="text-green-600 mt-3">{message}</p>}
-      {error && <p className="text-red-600 mt-3">{error}</p>}
+      {message && <p className="text-sm text-mist/90 mt-8 leading-relaxed">{message}</p>}
+      {error && <p className="text-sm text-red-400/90 mt-8 leading-relaxed">{error}</p>}
     </div>
   );
 }

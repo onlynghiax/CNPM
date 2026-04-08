@@ -1,6 +1,16 @@
 import { useState } from "react";
 import axiosClient from "../api/axiosClient";
 
+const inputClass =
+  "w-full bg-transparent py-2.5 px-0 text-mist placeholder:text-muted/60 outline-none border-0 border-b border-mist/15 focus:border-mist/35 transition rounded-none";
+
+function formatError(err) {
+  const d = err.response?.data;
+  if (typeof d === "string") return d;
+  if (d && typeof d === "object") return JSON.stringify(d);
+  return err.message || "Registration failed.";
+}
+
 function RegisterPage() {
   const [form, setForm] = useState({ fullName: "", email: "", password: "" });
   const [message, setMessage] = useState("");
@@ -9,10 +19,10 @@ function RegisterPage() {
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) {
-      return "Email khong hop le";
+      return "Please enter a valid email address.";
     }
     if (form.password.length < 6) {
-      return "Mat khau toi thieu 6 ky tu";
+      return "Password must be at least 6 characters.";
     }
     return "";
   };
@@ -30,45 +40,49 @@ function RegisterPage() {
 
     try {
       await axiosClient.post("/api/auth/register", form);
-      setMessage("Dang ky thanh cong, vui long dang nhap.");
+      setMessage("You're in. Sign in with BadGenius whenever you're ready.");
       setForm({ fullName: "", email: "", password: "" });
     } catch (err) {
-      setError(err.response?.data || "Dang ky that bai");
+      setError(formatError(err));
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-semibold mb-4">CNPM-6: Dang ky tai khoan</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="max-w-md mx-auto rounded-2xl bg-card p-8 md:p-12 shadow-soft text-center sm:text-left">
+      <h1 className="text-3xl md:text-4xl font-extralight tracking-tight text-white mb-2">Create an account</h1>
+      <p className="text-sm text-muted mb-10 leading-relaxed font-light">Join BadGenius to save your profile.</p>
+      <form onSubmit={handleSubmit} className="space-y-7">
         <input
-          className="w-full border rounded p-2"
-          placeholder="Ho ten"
+          className={inputClass}
+          placeholder="Full name"
           value={form.fullName}
           onChange={(e) => setForm({ ...form, fullName: e.target.value })}
           required
         />
         <input
-          className="w-full border rounded p-2"
+          className={inputClass}
           placeholder="Email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
         <input
-          className="w-full border rounded p-2"
+          className={inputClass}
           type="password"
-          placeholder="Mat khau (>=6 ky tu)"
+          placeholder="Password (6+ characters)"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
         />
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
-          Dang ky
+        <button
+          className="rounded-minimal bg-mist/90 hover:bg-mist text-void font-semibold px-6 py-3 shadow-soft-sm transition"
+          type="submit"
+        >
+          Register
         </button>
       </form>
-      {message && <p className="text-green-600 mt-3">{message}</p>}
-      {error && <p className="text-red-600 mt-3">{error}</p>}
+      {message && <p className="text-sm text-mist/90 mt-8 leading-relaxed">{message}</p>}
+      {error && <p className="text-sm text-red-400/90 mt-8 leading-relaxed">{error}</p>}
     </div>
   );
 }

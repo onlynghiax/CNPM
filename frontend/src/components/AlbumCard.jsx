@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
+import { motion } from "framer-motion";
 
 function formatPrice(value) {
   if (value == null) return "—";
@@ -29,7 +30,7 @@ export default function AlbumCard({ album }) {
   };
 
   return (
-    <div className="group block rounded-2xl">
+    <motion.div whileHover={{ scale: 1.05 }} className="group block rounded-2xl">
       <div className="rounded-2xl bg-card p-3 md:p-4 transition-transform duration-300 ease-out hover:-translate-y-0.5">
         <Link
           to={`/album/${id}`}
@@ -39,7 +40,7 @@ export default function AlbumCard({ album }) {
           {imageUrl ? (
             <img
               src={imageUrl}
-              alt=""
+              alt={title}
               className="h-full w-full object-cover transition-transform duration-500 ease-out will-change-transform group-hover:scale-[1.05]"
             />
           ) : (
@@ -61,6 +62,6 @@ export default function AlbumCard({ album }) {
           {notice && <p className="text-xs text-muted pt-1">{notice}</p>}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

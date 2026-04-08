@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { useCart } from "../context/CartContext";
+import { motion } from "framer-motion";
 
 function formatPrice(value) {
   const n = Number(value || 0);
@@ -47,7 +48,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }} className="max-w-5xl mx-auto space-y-8">
       <h1 className="text-4xl font-extralight text-white">Your Cart</h1>
       {(cart.items || []).length === 0 ? (
         <div className="rounded-2xl bg-card p-8 text-center space-y-4">
@@ -119,6 +120,6 @@ export default function CartPage() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

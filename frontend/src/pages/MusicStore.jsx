@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import axiosClient from "../api/axiosClient";
 import AlbumCard from "../components/AlbumCard";
+import VinylLoader from "../components/VinylLoader";
+import { motion } from "framer-motion";
 
 const RAPPERS = [
   "All",
@@ -37,12 +39,18 @@ export default function MusicStore() {
       if (artist && artist !== "All") params.artist = artist;
       if (debouncedQ) params.q = debouncedQ;
       const res = await axiosClient.get("/api/albums", { params });
-      setAlbums(Array.isArray(res.data) ? res.data : []);
+      
+      // Artificial delay to showcase the Vinyl loader
+      setTimeout(() => {
+        setAlbums(Array.isArray(res.data) ? res.data : []);
+        setLoading(false);
+      }, 1200);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Could not load albums.");
-      setAlbums([]);
-    } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setError(err.response?.data?.message || err.message || "Could not load albums.");
+        setAlbums([]);
+        setLoading(false);
+      }, 1200);
     }
   }, [artist, debouncedQ]);
 
@@ -68,7 +76,7 @@ export default function MusicStore() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-14 md:space-y-16">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }} className="max-w-6xl mx-auto space-y-14 md:space-y-16">
       <header className="text-center space-y-8 max-w-2xl mx-auto px-2">
         <div className="space-y-4">
           <p className="text-[11px] uppercase tracking-[0.35em] text-muted">BadGenius</p>
@@ -101,19 +109,21 @@ export default function MusicStore() {
       {error && (
         <p className="text-sm text-red-400/90 text-center leading-relaxed max-w-lg mx-auto">{String(error)}</p>
       )}
-      {loading && <p className="text-sm text-muted text-center">Loading...</p>}
+      {loading && <VinylLoader />}
 
       {!loading && !error && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
           {albums.map((a) => (
-            <AlbumCard key={a.id} album={a} />
+            <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }} key={a.id}>
+              <AlbumCard album={a} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {!loading && !error && albums.length === 0 && (
         <p className="text-sm text-muted text-center">No albums match your filters.</p>
       )}
-    </div>
+    </motion.div>
   );
 }

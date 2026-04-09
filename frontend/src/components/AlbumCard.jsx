@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { motion } from "framer-motion";
+import { ShoppingCart } from "lucide-react";
+import toast from "react-hot-toast";
 
 function formatPrice(value) {
   if (value == null) return "—";
@@ -10,8 +12,7 @@ function formatPrice(value) {
 }
 
 export default function AlbumCard({ album }) {
-  const { addToCart } = useCart();
-  const [notice, setNotice] = useState("");
+  const { addToCart, isLoggedIn } = useCart();
   const [imgError, setImgError] = useState(false);
   const id = album.id;
   const title = album.title ?? "";
@@ -19,14 +20,44 @@ export default function AlbumCard({ album }) {
   const imageUrl = album.imageUrl;
   const price = album.price;
 
-  const handleAdd = async () => {
+  const handleAdd = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!isLoggedIn()) {
+      toast.error("Please log in to add items.");
+      return;
+    }
     try {
       await addToCart(id, 1);
-      setNotice("Added");
-      setTimeout(() => setNotice(""), 1200);
+      toast.success("Added to cart!");
     } catch (err) {
-      setNotice(err.response?.data || "Login required");
-      setTimeout(() => setNotice(""), 1500);
+      console.error("[AlbumCard] handleAdd failed:", err);
+      // 401/403 toast is already shown by axiosClient interceptor
+      if (!err.response?.status) {
+        toast.error(err.message || "Failed to add to cart.");
+      }
+    }
+  };
+
+  const handleQuickAdd = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!isLoggedIn()) {
+      toast.error("Please log in to add items.");
+      return;
+    }
+    try {
+      await addToCart(id, 1);
+      toast.success("Added to cart!");
+    } catch (err) {
+      console.error("[AlbumCard] handleQuickAdd failed:", err);
+      if (!err.response?.status) {
+        toast.error(err.message || "Failed to add to cart.");
+      }
     }
   };
 
@@ -65,7 +96,17 @@ export default function AlbumCard({ album }) {
         </div>
         </Link>
         <div className="mt-4 space-y-1.5 px-0.5">
-          <p className="font-medium text-mist leading-snug line-clamp-2 text-[15px]">{title}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-medium text-mist leading-snug line-clamp-2 text-[15px]">{title}</p>
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={handleQuickAdd}
+              className="mt-0.5 p-1.5 text-muted hover:text-white hover:bg-white/10 rounded-full transition-colors focus:outline-none flex-shrink-0 focus-visible:ring-2 focus-visible:ring-mist/30"
+              title="Quick Add to Cart"
+            >
+              <ShoppingCart size={16} />
+            </motion.button>
+          </div>
           <p className="text-sm text-muted leading-snug line-clamp-1">{artist}</p>
           <p className="text-sm font-medium text-accent-silver pt-0.5">{formatPrice(price)}</p>
           <button
@@ -75,7 +116,7 @@ export default function AlbumCard({ album }) {
           >
             Add to Cart
           </button>
-          {notice && <p className="text-xs text-muted pt-1">{notice}</p>}
+          {/* notice removed – using toast instead */}
         </div>
       </div>
     </motion.div>

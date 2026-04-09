@@ -5,10 +5,12 @@ import com.ecommerce.usermanagement.dto.CheckoutResponse;
 import com.ecommerce.usermanagement.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -28,5 +30,17 @@ public class OrderController {
         } catch (IllegalStateException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<com.ecommerce.usermanagement.dto.OrderDto>> getUserOrders(Authentication authentication) {
+        String email = (String) authentication.getPrincipal();
+        return ResponseEntity.ok(orderService.getUserOrders(email));
+    }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<List<com.ecommerce.usermanagement.dto.OrderDto>> getMyOrders(Authentication authentication) {
+        String email = (String) authentication.getPrincipal();
+        return ResponseEntity.ok(orderService.getUserOrders(email));
     }
 }

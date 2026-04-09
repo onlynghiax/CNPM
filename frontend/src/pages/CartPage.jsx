@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { useCart } from "../context/CartContext";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 function formatPrice(value) {
   const n = Number(value || 0);
@@ -38,8 +39,9 @@ export default function CartPage() {
     }
     try {
       setPlacing(true);
-      const result = await checkout(paymentMethod);
-      setMessage(result.message || "Checkout successful.");
+      await checkout(paymentMethod);
+      toast.success("Order placed successfully! Check your profile for updates.");
+      setTimeout(() => navigate("/profile"), 1500);
     } catch (err) {
       setError(err.response?.data || "Checkout failed.");
     } finally {
@@ -115,7 +117,6 @@ export default function CartPage() {
             >
               {placing ? "Placing order..." : "Place Order"}
             </button>
-            {message && <p className="text-green-400 text-sm">{message}</p>}
             {error && <p className="text-red-400 text-sm">{error}</p>}
           </div>
         </div>

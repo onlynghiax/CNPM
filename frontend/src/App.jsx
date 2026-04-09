@@ -7,6 +7,7 @@ import MusicStore from "./pages/MusicStore";
 import AlbumDetail from "./pages/AlbumDetail";
 import CartPage from "./pages/CartPage";
 import { useCart } from "./context/CartContext";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const hasToken = Boolean(localStorage.getItem("token"));
@@ -17,6 +18,23 @@ function App() {
 
   return (
     <div className="min-h-screen bg-void text-mist">
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          style: {
+            background: '#050505',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '12px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#A3A3A3',
+              secondary: '#050505',
+            },
+          },
+        }}
+      />
       <nav className="sticky top-0 z-10 border-b border-white/[0.06] bg-void/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 md:justify-between">
           <Link to="/" className="text-center md:text-left">

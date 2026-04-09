@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useCallback } from "react";
 import axiosClient from "../api/axiosClient";
 
 const CartContext = createContext(null);
@@ -17,35 +17,69 @@ export function CartProvider({ children }) {
     }
   };
 
-  const addToCart = async (albumId, quantity = 1) => {
-    const res = await axiosClient.post("/api/cart/add", { albumId, quantity });
-    setCart(res.data);
-    return res.data;
-  };
+  const addToCart = useCallback(async (albumId, quantity = 1) => {
+    try {
+      const res = await axiosClient.post("/api/cart/add", { albumId, quantity });
+      setCart(prev => res.data ?? prev);
+      return res.data;
+    } catch (err) {
+      console.error("[CartContext] addToCart failed:", err);
+      const msg = err.response?.data;
+      throw typeof msg === "string" ? new Error(msg) : err;
+    }
+  }, []);
 
-  const updateQuantity = async (cartItemId, quantity) => {
-    const res = await axiosClient.put("/api/cart/update", { cartItemId, quantity });
-    setCart(res.data);
-    return res.data;
-  };
+  const updateQuantity = useCallback(async (cartItemId, quantity) => {
+    try {
+      const res = await axiosClient.put("/api/cart/update", { cartItemId, quantity });
+      setCart(prev => res.data ?? prev);
+      return res.data;
+    } catch (err) {
+      console.error("[CartContext] updateQuantity failed:", err);
+      throw err;
+    }
+  }, []);
 
-  const removeItem = async (id) => {
-    const res = await axiosClient.delete(`/api/cart/${id}`);
-    setCart(res.data);
-    return res.data;
-  };
+  const removeItem = useCallback(async (id) => {
+    try {
+      const res = await axiosClient.delete(`/api/cart/${id}`);
+      setCart(prev => res.data ?? prev);
+      return res.data;
+    } catch (err) {
+      console.error("[CartContext] removeItem failed:", err);
+      throw err;
+    }
+  }, []);
 
-  const checkout = async (paymentMethod) => {
-    const res = await axiosClient.post("/api/orders/checkout", { paymentMethod });
-    await refreshCart();
-    return res.data;
-  };
+  const checkout = useCallback(async (paymentMethod) => {
+    try {
+      const res = await axiosClient.post("/api/orders/checkout", { paymentMethod });
+      await refreshCart();
+      return res.data;
+    } catch (err) {
+      console.error("[CartContext] checkout failed:", err);
+      throw err;
+    }
+  }, [refreshCart]);
 
   const itemCount = (cart.items || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
 
+  // Stable token check — does NOT cause re-renders
+  const isLoggedIn = useCallback(() => Boolean(localStorage.getItem("token")), []);
+
   const value = useMemo(
-    () => ({ cart, itemCount, refreshCart, addToCart, updateQuantity, removeItem, checkout }),
-    [cart, itemCount]
+    () => ({
+      cart,
+      itemCount,
+      isLoggedIn,
+      refreshCart,
+      addToCart,
+      updateQuantity,
+      removeItem,
+      checkout,
+    }),
+    // Include all stable callbacks so consumers never hold stale references
+    [cart, itemCount, isLoggedIn, refreshCart, addToCart, updateQuantity, removeItem, checkout]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

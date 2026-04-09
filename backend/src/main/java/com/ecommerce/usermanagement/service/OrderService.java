@@ -43,13 +43,23 @@ public class OrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setPaymentMethod(paymentMethod);
         if ("Cash on Delivery".equalsIgnoreCase(paymentMethod)) {
-            order.setStatus("PENDING");
+            order.setStatus(com.ecommerce.usermanagement.model.OrderStatus.PENDING);
         } else {
-            order.setStatus("PAID");
+            order.setStatus(com.ecommerce.usermanagement.model.OrderStatus.PROCESSING);
         }
         Order saved = orderRepository.save(order);
 
         cartItemRepository.deleteAll(items);
         return new CheckoutResponse(saved.getId(), saved.getTotalPrice(), saved.getOrderDate(), "Checkout successful.");
+    }
+
+    public List<com.ecommerce.usermanagement.dto.OrderDto> getUserOrders(String email) {
+        User user = userService.getUserByEmail(email);
+        return orderRepository.findByUserIdOrderByOrderDateDesc(user.getId())
+                .stream()
+                .map(o -> new com.ecommerce.usermanagement.dto.OrderDto(
+                        o.getId(), o.getTotalPrice(), o.getOrderDate(), o.getPaymentMethod(), o.getStatus().name()
+                ))
+                .toList();
     }
 }

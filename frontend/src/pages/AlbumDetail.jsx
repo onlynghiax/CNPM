@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
-import { Play, Pause, Volume2 } from "lucide-react";
+import { Play, Pause, Volume2, ShoppingCart, Star } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import { useCart } from "../context/CartContext";
 import VinylLoader from "../components/VinylLoader";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 
 function formatPrice(value) {
   if (value == null) return "—";
@@ -13,13 +14,17 @@ function formatPrice(value) {
 }
 
 export default function AlbumDetail() {
-  const { addToCart } = useCart();
+  const { addToCart, isLoggedIn } = useCart();
   const { id } = useParams();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [imgError, setImgError] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ rating: 0, comment: "" });
+  const [hover, setHover] = useState(0);
+  const hasToken = Boolean(localStorage.getItem("token"));
   
   const [playingIndex, setPlayingIndex] = useState(null);
   const audioRef = useRef(null);
@@ -52,13 +57,19 @@ export default function AlbumDetail() {
   }, []);
 
   const handleAdd = async () => {
+    if (!isLoggedIn()) {
+      toast.error("Please log in to add items.");
+      return;
+    }
     try {
       await addToCart(album.id, 1);
-      setNotice("Added to cart.");
-      setTimeout(() => setNotice(""), 1500);
+      toast.success("Added to cart!");
     } catch (err) {
-      setNotice(err.response?.data || "Please login to add items.");
-      setTimeout(() => setNotice(""), 1800);
+      console.error("[AlbumDetail] handleAdd failed:", err);
+      // 401/403 toasts shown by axiosClient interceptor; only show for other errors
+      if (!err.response?.status) {
+        toast.error(err.message || "Failed to add to cart.");
+      }
     }
   };
 
@@ -69,10 +80,14 @@ export default function AlbumDetail() {
       setLoading(true);
       setError("");
       try {
-        const res = await axiosClient.get(`/api/albums/${id}`);
+        const [res, reviewsRes] = await Promise.all([
+           axiosClient.get(`/api/albums/${id}`),
+           axiosClient.get(`/api/reviews/album/${id}`).catch(() => ({ data: [] }))
+        ]);
         setTimeout(() => {
           if (!cancelled) {
             setAlbum(res.data);
+            setReviews(reviewsRes.data || []);
             setLoading(false);
           }
         }, 1200);
@@ -90,6 +105,25 @@ export default function AlbumDetail() {
       cancelled = true;
     };
   }, [id]);
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    if (!reviewForm.comment.trim() || reviewForm.rating === 0) return;
+    try {
+      const res = await axiosClient.post("/api/reviews", {
+        albumId: album.id,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment
+      });
+      setReviews(prev => [res.data, ...prev]);
+      setReviewForm({ rating: 0, comment: "" });
+      setHover(0);
+      toast.success("Review submitted!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data || "Could not submit review.");
+    }
+  };
 
   if (loading) {
     return <VinylLoader />;
@@ -157,9 +191,28 @@ export default function AlbumDetail() {
         <div className="rounded-2xl bg-card px-6 py-8 md:px-10 md:py-12 space-y-10 text-mist">
           <header className="space-y-3">
             <p className="text-[11px] uppercase tracking-[0.25em] text-muted font-black">BadGenius</p>
-            <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white leading-[1.1]">
-              {album.title}
-            </h1>
+            <div className="flex items-start justify-between gap-4 pr-2">
+              <h1 className="text-4xl md:text-5xl font-extralight tracking-tight text-white leading-[1.1]">
+                {album.title}
+              </h1>
+              <motion.button
+                whileTap={{ scale: 0.85 }}
+                onClick={handleAdd}
+                className="mt-1 p-2 text-muted hover:text-white rounded-full transition-all focus:outline-none flex-shrink-0 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] group relative"
+                title="Quick Add to Cart"
+              >
+                <ShoppingCart size={28} className="group-hover:text-accent-silver transition-colors" />
+                {notice && (
+                   <motion.span 
+                      initial={{ opacity: 0, y: 5 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-medium bg-mist text-black px-2 py-0.5 rounded whitespace-nowrap shadow-md pointer-events-none"
+                   >
+                     Added!
+                   </motion.span>
+                )}
+              </motion.button>
+            </div>
             <p className="text-lg md:text-xl text-white/70 font-light">{album.artist}</p>
           </header>
 
@@ -231,6 +284,72 @@ export default function AlbumDetail() {
             Add to Cart
           </button>
           {notice && <p className="text-sm text-muted">{notice}</p>}
+
+          {/* REVIEWS SECTION */}
+          <div className="space-y-6 border-t border-white/10 pt-10 mt-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted">User Reviews</h2>
+              {reviews.length > 0 && (
+                <div className="flex items-center gap-1 text-accent-silver text-sm font-medium">
+                  <Star size={14} className="fill-accent-silver text-accent-silver" />
+                  {(reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1)}
+                </div>
+              )}
+            </div>
+
+            {hasToken ? (
+              <form onSubmit={submitReview} className="space-y-3 bg-[#0a0a0a] p-4 rounded-xl border border-white/5">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewForm(prev => ({ ...prev, rating: star }))}
+                      onMouseEnter={() => setHover(star)}
+                      onMouseLeave={() => setHover(0)}
+                      className="focus:outline-none"
+                    >
+                      <Star 
+                        size={18} 
+                        className={star <= (hover || reviewForm.rating) ? "fill-[#FFD700] text-[#FFD700]" : "text-muted/30"} 
+                      />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  placeholder="Leave a review..."
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm(prev => ({ ...prev, comment: e.target.value }))}
+                  className="w-full bg-transparent text-sm text-white placeholder:text-muted/50 resize-none outline-none border-b border-white/10 hover:border-white/20 focus:border-white/40 transition-colors py-2 min-h-[60px]"
+                />
+                <button type="submit" disabled={!reviewForm.comment.trim()} className="text-[11px] uppercase tracking-wider text-black bg-white px-4 py-1.5 rounded-full font-bold hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Post
+                </button>
+              </form>
+            ) : null}
+
+            <div className="space-y-4">
+              {reviews.length === 0 ? (
+                <p className="text-sm text-muted font-light italic">No reviews yet.</p>
+              ) : (
+                reviews.map(review => (
+                  <div key={review.id} className="space-y-1 bg-white/5 p-4 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-white">{review.reviewerName}</span>
+                      <span className="text-[10px] text-muted">{new Date(review.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star key={star} size={10} className={star <= review.rating ? "fill-white text-white" : "text-muted/20"} />
+                      ))}
+                    </div>
+                    <p className="text-sm text-white/80 font-light mt-2 leading-relaxed">{review.comment}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          {/* END REVIEWS */}
         </div>
       </div>
     </motion.div>

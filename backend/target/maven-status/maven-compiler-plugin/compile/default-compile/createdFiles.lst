@@ -1,5 +1,6 @@
 com\ecommerce\usermanagement\dto\AddToCartRequest.class
 com\ecommerce\usermanagement\dto\AuthResponse.class
+com\ecommerce\usermanagement\dto\ReviewRequest.class
 com\ecommerce\usermanagement\UserManagementApplication.class
 com\ecommerce\usermanagement\controller\UserController.class
 com\ecommerce\usermanagement\security\JwtAuthenticationFilter.class
@@ -11,6 +12,7 @@ com\ecommerce\usermanagement\model\CartItem.class
 com\ecommerce\usermanagement\service\OrderService.class
 com\ecommerce\usermanagement\controller\OrderController.class
 com\ecommerce\usermanagement\controller\AuthController.class
+com\ecommerce\usermanagement\model\Review.class
 com\ecommerce\usermanagement\repository\UserRepository.class
 com\ecommerce\usermanagement\controller\CartController.class
 com\ecommerce\usermanagement\dto\CheckoutRequest.class
@@ -19,16 +21,22 @@ com\ecommerce\usermanagement\repository\AlbumRepository.class
 com\ecommerce\usermanagement\dto\UpdateCartItemRequest.class
 com\ecommerce\usermanagement\model\Album$Track.class
 com\ecommerce\usermanagement\model\Order.class
+com\ecommerce\usermanagement\model\OrderStatus.class
 com\ecommerce\usermanagement\service\CartService.class
+com\ecommerce\usermanagement\controller\ReviewController.class
+com\ecommerce\usermanagement\repository\ReviewRepository.class
 com\ecommerce\usermanagement\dto\UserProfileResponse.class
 com\ecommerce\usermanagement\dto\LoginRequest.class
+com\ecommerce\usermanagement\dto\ReviewDto.class
 com\ecommerce\usermanagement\dto\CheckoutResponse.class
 com\ecommerce\usermanagement\service\AlbumSeedService.class
 com\ecommerce\usermanagement\dto\UserProfileRequest.class
 com\ecommerce\usermanagement\repository\CartItemRepository.class
 com\ecommerce\usermanagement\security\SecurityConfig.class
 com\ecommerce\usermanagement\dto\CartResponse.class
+com\ecommerce\usermanagement\dto\OrderDto.class
 com\ecommerce\usermanagement\dto\RegisterRequest.class
 com\ecommerce\usermanagement\repository\OrderRepository.class
+com\ecommerce\usermanagement\service\ReviewService.class
 com\ecommerce\usermanagement\controller\AlbumController.class
 com\ecommerce\usermanagement\security\JwtUtil.class

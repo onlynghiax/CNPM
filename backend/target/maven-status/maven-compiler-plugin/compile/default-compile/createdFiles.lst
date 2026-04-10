@@ -23,11 +23,13 @@ com\ecommerce\usermanagement\model\Album$Track.class
 com\ecommerce\usermanagement\model\Order.class
 com\ecommerce\usermanagement\model\OrderStatus.class
 com\ecommerce\usermanagement\service\CartService.class
+com\ecommerce\usermanagement\dto\AdminStatsDto.class
 com\ecommerce\usermanagement\controller\ReviewController.class
 com\ecommerce\usermanagement\repository\ReviewRepository.class
 com\ecommerce\usermanagement\dto\UserProfileResponse.class
 com\ecommerce\usermanagement\dto\LoginRequest.class
 com\ecommerce\usermanagement\dto\ReviewDto.class
+com\ecommerce\usermanagement\controller\AdminController.class
 com\ecommerce\usermanagement\dto\CheckoutResponse.class
 com\ecommerce\usermanagement\service\AlbumSeedService.class
 com\ecommerce\usermanagement\dto\UserProfileRequest.class

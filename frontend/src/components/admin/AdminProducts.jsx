@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Music, Image as ImageIcon } from 'lucide-react';
-import axios from 'axios';
+import { Plus, Edit2, Trash2, X, Music, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import axiosClient from '../../api/axiosClient';
 import toast from 'react-hot-toast';
+import { useAlbums } from '../../context/AlbumContext';
+import { useNavigate } from 'react-router-dom';
 
 const AdminProducts = () => {
-    const [albums, setAlbums] = useState([]);
+    const { albums, loading: contextLoading, error: contextError, fetchAlbums: refreshGlobalAlbums } = useAlbums();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentAlbum, setCurrentAlbum] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -21,24 +25,18 @@ const AdminProducts = () => {
     });
 
     useEffect(() => {
-        fetchAlbums();
-    }, []);
-
-    const fetchAlbums = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/api/albums');
-            setAlbums(response.data);
-        } catch (error) {
-            toast.error('Failed to load albums');
-        } finally {
-            setLoading(false);
-        }
-    };
+        // Sync local loading/error with context
+        setLoading(contextLoading);
+        setError(contextError);
+    }, [contextLoading, contextError]);
 
     const handleOpenModal = (album = null) => {
         if (album) {
             setCurrentAlbum(album);
-            setFormData(album);
+            setFormData({
+                ...album,
+                tracklist: Array.isArray(album.tracklist) ? album.tracklist : []
+            });
         } else {
             setCurrentAlbum(null);
             setFormData({
@@ -53,50 +51,82 @@ const AdminProducts = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             if (currentAlbum) {
-                await axios.put(`http://localhost:8080/api/albums/${currentAlbum.id}`, formData, config);
+                await axiosClient.put(`/api/albums/${currentAlbum.id}`, formData);
                 toast.success('Album updated');
             } else {
-                await axios.post('http://localhost:8080/api/albums', formData, config);
+                await axiosClient.post('/api/albums', formData);
                 toast.success('Album created');
             }
             setIsModalOpen(false);
-            fetchAlbums();
-        } catch (error) {
-            toast.error('Operation failed');
+            refreshGlobalAlbums();
+        } catch (err) {
+            console.error('Submit Error:', err);
+            toast.error(err.response?.data?.message || 'Operation failed');
+            if (err.response?.status === 401 || err.response?.status === 403) {
+                navigate('/login');
+            }
         }
     };
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this album?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/albums/${id}`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                });
+                await axiosClient.delete(`/api/albums/${id}`);
                 toast.success('Album deleted');
-                fetchAlbums();
-            } catch (error) {
+                refreshGlobalAlbums();
+            } catch (err) {
                 toast.error('Failed to delete album');
+                if (err.response?.status === 401 || err.response?.status === 403) {
+                    navigate('/login');
+                }
             }
         }
     };
 
     const addTrack = () => {
-        setFormData({ ...formData, tracklist: [...formData.tracklist, { trackName: '', previewUrl: '' }] });
+        const currentTracks = Array.isArray(formData.tracklist) ? formData.tracklist : [];
+        setFormData({ ...formData, tracklist: [...currentTracks, { trackName: '', previewUrl: '' }] });
     };
 
     const updateTrack = (index, field, value) => {
-        const newTracklist = [...formData.tracklist];
-        newTracklist[index][field] = value;
-        setFormData({ ...formData, tracklist: newTracklist });
+        const currentTracks = Array.isArray(formData.tracklist) ? formData.tracklist : [];
+        const newTracklist = [...currentTracks];
+        if (newTracklist[index]) {
+            newTracklist[index][field] = value;
+            setFormData({ ...formData, tracklist: newTracklist });
+        }
     };
 
     const removeTrack = (index) => {
-        setFormData({ ...formData, tracklist: formData.tracklist.filter((_, i) => i !== index) });
+        const currentTracks = Array.isArray(formData.tracklist) ? formData.tracklist : [];
+        setFormData({ ...formData, tracklist: currentTracks.filter((_, i) => i !== index) });
     };
 
-    if (loading) return <div className="text-muted animate-pulse">Loading collection...</div>;
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center py-24 space-y-4 animate-pulse">
+            <div className="w-12 h-12 rounded-full border-2 border-white/5 border-t-white/20 animate-spin"></div>
+            <p className="text-muted text-[10px] uppercase tracking-[0.3em]">Auditing Inventory...</p>
+        </div>
+    );
+
+    if (error) return (
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-16 text-center space-y-6">
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="text-muted" size={32} />
+            </div>
+            <div className="space-y-2">
+                <p className="text-white font-medium">{error}</p>
+                <p className="text-muted text-sm px-10">Access to the global stock repository was denied or lost.</p>
+            </div>
+            <button 
+                onClick={() => refreshGlobalAlbums()}
+                className="bg-white text-void px-8 py-3 rounded-xl font-bold text-sm tracking-tight hover:bg-mist transition-colors shadow-soft-sm"
+            >
+                Retry Audit
+            </button>
+        </div>
+    );
 
     return (
         <div className="space-y-8 animate-fade-in">
@@ -114,49 +144,57 @@ const AdminProducts = () => {
             </header>
 
             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden shadow-xl">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="bg-white/[0.01] border-b border-white/[0.03]">
-                            <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-muted font-medium">Product</th>
-                            <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-muted font-medium text-right">Price</th>
-                            <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-muted font-medium text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/[0.03]">
-                        {albums.map((album) => (
-                            <tr key={album.id} className="hover:bg-white/[0.01] transition-colors group">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-lg overflow-hidden border border-white/5 bg-white/5 flex-shrink-0">
-                                            {album.imageUrl ? (
-                                                <img src={album.imageUrl} alt={album.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={20} /></div>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-white leading-tight">{album.title}</p>
-                                            <p className="text-sm text-muted mt-0.5">{album.artist} • {album.releaseYear}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <span className="font-mono text-white text-lg font-bold">{album.price} $</span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex justify-center gap-2">
-                                        <button onClick={() => handleOpenModal(album)} className="p-2.5 bg-white/[0.03] hover:bg-white/10 text-muted hover:text-white rounded-lg transition-all border border-white/5">
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button onClick={() => handleDelete(album.id)} className="p-2.5 bg-white/[0.03] hover:bg-mist/10 text-muted hover:text-mist rounded-lg transition-all border border-white/5">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-white/[0.01] border-b border-white/[0.03]">
+                                <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-muted font-medium">Product</th>
+                                <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-muted font-medium text-right">Price</th>
+                                <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-muted font-medium text-center">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.03]">
+                            {(albums || []).map((album) => (
+                                <tr key={album?.id} className="hover:bg-white/[0.01] transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-14 h-14 rounded-lg overflow-hidden border border-white/5 bg-white/5 flex-shrink-0">
+                                                {album?.imageUrl ? (
+                                                    <img src={album.imageUrl} alt={album.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={20} /></div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-white leading-tight">{album?.title || 'Unknown Title'}</p>
+                                                <p className="text-sm text-muted mt-0.5">{album?.artist || 'Unknown Artist'} • {album?.releaseYear || '—'}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <span className="font-mono text-white text-lg font-bold">{album?.price || 0} $</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex justify-center gap-2">
+                                            <button onClick={() => handleOpenModal(album)} className="p-2.5 bg-white/[0.03] hover:bg-white/10 text-muted hover:text-white rounded-lg transition-all border border-white/5">
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button onClick={() => handleDelete(album.id)} className="p-2.5 bg-white/[0.03] hover:bg-mist/10 text-muted hover:text-mist rounded-lg transition-all border border-white/5">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                {(!albums || albums.length === 0) && (
+                    <div className="p-20 text-center">
+                        <ImageIcon size={48} className="mx-auto text-white/5 mb-4" />
+                        <p className="text-muted italic">The vault is currently empty.</p>
+                    </div>
+                )}
             </div>
 
             {/* Modal */}
@@ -228,13 +266,13 @@ const AdminProducts = () => {
                                         </button>
                                     </div>
                                     <div className="space-y-3">
-                                        {formData.tracklist.map((track, index) => (
+                                        {(formData.tracklist || []).map((track, index) => (
                                             <div key={index} className="flex gap-4 items-center bg-white/[0.01] p-4 rounded-xl border border-white/[0.02] hover:border-white/10 transition-colors group">
                                                 <span className="text-[10px] font-mono text-muted w-4 flex-shrink-0">{index + 1}</span>
-                                                <input required value={track.trackName} onChange={e => updateTrack(index, 'trackName', e.target.value)}
+                                                <input required value={track?.trackName} onChange={e => updateTrack(index, 'trackName', e.target.value)}
                                                     className="flex-1 bg-transparent border-b border-white/10 py-1 text-sm text-white focus:border-white outline-none"
                                                     placeholder="Track Name" />
-                                                <input value={track.previewUrl} onChange={e => updateTrack(index, 'previewUrl', e.target.value)}
+                                                <input value={track?.previewUrl} onChange={e => updateTrack(index, 'previewUrl', e.target.value)}
                                                     className="flex-1 bg-transparent border-b border-white/10 py-1 text-sm text-white/40 focus:text-white focus:border-white outline-none"
                                                     placeholder="Preview URL (Optional)" />
                                                 <button type="button" onClick={() => removeTrack(index)} 

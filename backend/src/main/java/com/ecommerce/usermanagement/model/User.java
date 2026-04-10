@@ -32,6 +32,9 @@ public class User {
 
     private String address;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @OneToMany(mappedBy = "user")
     private List<CartItem> cartItems = new ArrayList<>();
 
@@ -88,5 +91,13 @@ public class User {
 
     public List<Order> getOrders() {
         return orders;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

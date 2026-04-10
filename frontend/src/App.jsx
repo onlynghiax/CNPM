@@ -8,6 +8,7 @@ import AlbumDetail from "./pages/AlbumDetail";
 import CartPage from "./pages/CartPage";
 import { useCart } from "./context/CartContext";
 import { Toaster } from "react-hot-toast";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   const hasToken = Boolean(localStorage.getItem("token"));
@@ -78,6 +79,10 @@ function App() {
           <Route
             path="/profile"
             element={hasToken ? <ProfilePage /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/admin"
+            element={hasToken ? <AdminDashboard /> : <Navigate to="/login" replace />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -40,6 +40,8 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    private Integer totalItems;
+
     public Long getId() {
         return id;
     }
@@ -82,5 +84,13 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public Integer getTotalItems() {
+        return totalItems;
+    }
+
+    public void setTotalItems(Integer totalItems) {
+        this.totalItems = totalItems;
     }
 }

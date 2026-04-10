@@ -1,4 +1,5 @@
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\config\AlbumSampleDataLoader.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\AdminController.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\AlbumController.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\AuthController.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\CartController.java
@@ -6,6 +7,7 @@ C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerc
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\ReviewController.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\controller\UserController.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\AddToCartRequest.java
+C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\AdminStatsDto.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\AuthResponse.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\CartItemResponse.java
 C:\Users\doant\OneDrive\Documents\coding\CNPM\backend\src\main\java\com\ecommerce\usermanagement\dto\CartResponse.java

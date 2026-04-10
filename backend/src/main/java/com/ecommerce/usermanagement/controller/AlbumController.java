@@ -3,11 +3,7 @@ package com.ecommerce.usermanagement.controller;
 import com.ecommerce.usermanagement.model.Album;
 import com.ecommerce.usermanagement.repository.AlbumRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -36,5 +32,33 @@ public class AlbumController {
         return albumRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public Album create(@RequestBody Album album) {
+        return albumRepository.save(album);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Album> update(@PathVariable Long id, @RequestBody Album albumDetails) {
+        return albumRepository.findById(id).map(album -> {
+            album.setTitle(albumDetails.getTitle());
+            album.setArtist(albumDetails.getArtist());
+            album.setDescription(albumDetails.getDescription());
+            album.setPrice(albumDetails.getPrice());
+            album.setImageUrl(albumDetails.getImageUrl());
+            album.setGenre(albumDetails.getGenre());
+            album.setReleaseYear(albumDetails.getReleaseYear());
+            album.setTracklist(albumDetails.getTracklist());
+            return ResponseEntity.ok(albumRepository.save(album));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        return albumRepository.findById(id).map(album -> {
+            albumRepository.delete(album);
+            return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 }

@@ -37,9 +37,12 @@ public class OrderService {
                 .map(i -> i.getAlbum().getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        int totalItemsCount = items.stream().mapToInt(CartItem::getQuantity).sum();
+
         Order order = new Order();
         order.setUser(user);
         order.setTotalPrice(total);
+        order.setTotalItems(totalItemsCount);
         order.setOrderDate(LocalDateTime.now());
         order.setPaymentMethod(paymentMethod);
         if ("Cash on Delivery".equalsIgnoreCase(paymentMethod)) {

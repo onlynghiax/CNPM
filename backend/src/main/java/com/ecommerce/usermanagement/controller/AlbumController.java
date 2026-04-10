@@ -3,6 +3,7 @@ package com.ecommerce.usermanagement.controller;
 import com.ecommerce.usermanagement.model.Album;
 import com.ecommerce.usermanagement.repository.AlbumRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,11 +35,13 @@ public class AlbumController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Transactional
     @PostMapping
     public Album create(@RequestBody Album album) {
         return albumRepository.save(album);
     }
 
+    @Transactional
     @PutMapping("/{id}")
     public ResponseEntity<Album> update(@PathVariable Long id, @RequestBody Album albumDetails) {
         return albumRepository.findById(id).map(album -> {
@@ -54,6 +57,7 @@ public class AlbumController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         return albumRepository.findById(id).map(album -> {

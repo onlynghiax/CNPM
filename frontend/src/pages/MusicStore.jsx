@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axiosClient from "../api/axiosClient";
 import AlbumCard from "../components/AlbumCard";
 import VinylLoader from "../components/VinylLoader";
+import { useAlbums } from "../context/AlbumContext";
 import { motion } from "framer-motion";
 
 const RAPPERS = [
@@ -19,44 +20,37 @@ const RAPPERS = [
 ];
 
 export default function MusicStore() {
-  const [albums, setAlbums] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { albums, loading: contextLoading, error: contextError, fetchAlbums } = useAlbums();
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [artist, setArtist] = useState("All");
+  const [localLoading, setLocalLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 350);
     return () => clearTimeout(t);
   }, [q]);
 
-  const fetchAlbums = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const params = {};
-      if (artist && artist !== "All") params.artist = artist;
-      if (debouncedQ) params.q = debouncedQ;
-      const res = await axiosClient.get("/api/albums", { params });
-      
-      // Artificial delay to showcase the Vinyl loader
-      setTimeout(() => {
-        setAlbums(Array.isArray(res.data) ? res.data : []);
-        setLoading(false);
-      }, 1200);
-    } catch (err) {
-      setTimeout(() => {
-        setError(err.response?.data?.message || err.message || "Could not load albums.");
-        setAlbums([]);
-        setLoading(false);
-      }, 1200);
-    }
-  }, [artist, debouncedQ]);
+  const syncAlbums = useCallback(async () => {
+    setLocalLoading(true);
+    const params = {};
+    if (artist && artist !== "All") params.artist = artist;
+    if (debouncedQ) params.q = debouncedQ;
+    
+    await fetchAlbums(params);
+    
+    // Maintain artificial delay for aesthetics
+    setTimeout(() => {
+        setLocalLoading(false);
+    }, 800);
+  }, [artist, debouncedQ, fetchAlbums]);
 
   useEffect(() => {
-    fetchAlbums();
-  }, [fetchAlbums]);
+    syncAlbums();
+  }, [syncAlbums]);
+
+  const loading = localLoading || contextLoading;
+  const error = contextError;
 
   const tabs = useMemo(
     () =>
